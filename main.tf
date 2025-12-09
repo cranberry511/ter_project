@@ -7,6 +7,7 @@ module "vpc_dev" {
 }
 
 data "yandex_vpc_security_group" "my_sg" {
+  depends_on = [yandex_vpc_security_group.my_sg]
   name = "my_sg"
 }
 
@@ -107,7 +108,12 @@ resource "null_resource" "run_docker_compose" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo usermod -aG docker ubuntu",
+      "sudo usermod -aG docker ubuntu"
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
       "curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash",
       "docker login --username oauth --password ${var.token} cr.yandex",
       "chmod +x /tmp/build_app.sh",
