@@ -1,0 +1,7 @@
+.git/
+.gitignore
+.dockerignore
+*.pdf
+.env
+haproxy/
+nginx/
