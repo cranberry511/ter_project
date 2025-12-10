@@ -11,13 +11,25 @@ data "yandex_vpc_security_group" "my_sg" {
   name = "my_sg"
 }
 
-resource "random_password" "db_pass" {
-  length      = 16
-  special     = false
-  min_upper   = 1
-  min_lower   = 1
-  min_numeric = 1
+resource "yandex_lockbox_secret" "db_password" {
+  name = "db_password"
+
+  password_payload_specification {
+    password_key = "db_pass"
+    length       = 12
+    include_punctuation = false
+  }
 }
+
+resource "yandex_lockbox_secret_version" "db_password_version" {
+  secret_id = yandex_lockbox_secret.db_password.id
+}
+
+data "yandex_lockbox_secret_version" "db_password" {
+  secret_id = yandex_lockbox_secret.db_password.id
+  version_id = yandex_lockbox_secret_version.db_password_version.id
+}
+
 
 data "yandex_compute_image" "my_image_family" {
   family = var.image_family
@@ -144,5 +156,5 @@ module "mysql_db_user" {
   cluster_id = module.mysql_cluster.cluster_id
   db_name     = var.db_name
   db_user = var.db_user
-  db_password = random_password.db_pass.result
+  db_password = data.yandex_lockbox_secret_version.db_password.entries[0]["text_value"]
 }
